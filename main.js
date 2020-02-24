@@ -86,6 +86,10 @@ var maxSpeed = 200;
 
 var ASSET_MANAGER = new AssetManager();
 
+ASSET_MANAGER.queueDownload("./img/960px-Blank_Go_board.png");
+ASSET_MANAGER.queueDownload("./img/black.png");
+ASSET_MANAGER.queueDownload("./img/white.png");
+
 ASSET_MANAGER.downloadAll(function () {
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
