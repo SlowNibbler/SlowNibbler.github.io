@@ -1,2 +1,2 @@
-# Animation
-Animation for Assignment 1
+# Interaction
+Interaction for Assignment 2

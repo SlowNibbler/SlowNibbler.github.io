@@ -3,14 +3,16 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Game Project Shell</title>
-    <script type="text/javascript" src="./gameengine.js"></script>
+    <title>WebGo</title>
     <script type="text/javascript" src="./assetmanager.js"></script>
+    <script type="text/javascript" src="./gameengine.js"></script>
     <script type="text/javascript" src="./main.js"></script>
+    <script type="text/javascript" src="./agent.js"></script>
+    <script type="text/javascript" src="./spawner.js"></script>
 </head>
 <body>
-    <canvas id="world" tabindex="1" width="800" height="450"></canvas>
-    <div class="test">Controls: Space and Enter</div>
-</body>
+    <div>Each agent starts with 3 shots. Green circles give +3 shots. Last man standing wins.</div>
 
+    <canvas id="gameWorld" width="800" height="800" style="border: 1px solid white; background: black"></canvas>
+</body>
 </html>
