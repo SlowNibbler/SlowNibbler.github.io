@@ -1,15 +1,18 @@
 // James McHugh
 
     
-function Agent(game, theSpawner) {
+function Agent(game, theSpawner, theX, theY) {
+    this.startX = theX;
+    this.startY = theY;
     this.spawner = theSpawner;
     this.name = "Agent";
     this.radius = 20;
-    this.visualRadius = 800;
-    this.ammo = 3;
+    this.visualRadius = 900;
+    this.ammo = 5;
+    this.shield = false;
     this.cooldown = 0;
-    Entity.call(this, game, this.radius + Math.random() * (800 - this.radius * 2), this.radius + Math.random() * (800 - this.radius * 2));
-    this.direction = { x: 800, y: 800 };
+    this.color = "White";
+    Entity.call(this, game, this.startX, this.startY);
     this.velocity = { x: Math.random() * 1000, y: Math.random() * 1000 };
     var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
     if (speed > maxSpeed) {
@@ -47,10 +50,11 @@ Agent.prototype.collideBottom = function () {
 };
 
 Agent.prototype.selectAction = function() {
-    var action = { direction: { x: this.direction.x, y: this.direction.y }, shoot: false, target: null, ammo: null, bullet: null };
+    var action = { shoot: false, target: null, ammo: null, bullet: null, shield: null };
     var closestBullet = 1000;
     var closestAmmo = 1000;
     var closestEnemy = 1000;
+    var closestShield = 1000;
 
     for (var i = 0; i < this.game.entities.length; i++) {
 
@@ -62,6 +66,18 @@ Agent.prototype.selectAction = function() {
             if (dist < closestAmmo) {
                 action.ammo = ent;
                 closestAmmo = dist;
+                
+            }
+        }
+
+        // find closest shield
+
+        if (this.game.entities[i].name == "Shield") {
+            var ent = this.game.entities[i];
+            var dist = distance(ent, this);
+            if (dist < closestShield) {
+                action.shield = ent;
+                closestShield = dist;
                 
             }
         }
@@ -89,19 +105,46 @@ Agent.prototype.selectAction = function() {
     }
 
     // dodge bullets
+    var lower = -.1;
+    var upper = .1;
     
-    if (closestBullet < 100) {
-        var difX = (action.bullet.x - this.x) / closestBullet;
-        var difY = (action.bullet.y - this.y) / closestBullet;
-        this.velocity.x -= difX * acceleration / (closestBullet * closestBullet);
-        this.velocity.y -= difY * acceleration / (closestBullet * closestBullet);
-        var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-        if (speed > maxSpeed) {
-            var ratio = maxSpeed / speed;
-            this.velocity.x *= ratio;
-            this.velocity.y *= ratio;
+    if (closestBullet < 300 && this.shield == false) {
+        var current = direction(this, action.bullet);
+        var bulletPath = action.bullet.direction;
+
+        if (((lower < (Math.abs(current.x) - Math.abs(bulletPath.x))) && (upper > (Math.abs(current.x) - Math.abs(bulletPath.x)))) &&
+        ((lower < (Math.abs(current.y) - Math.abs(bulletPath.y))) && (upper > (Math.abs(current.y) - Math.abs(bulletPath.y))))) {
+            var difX = (action.bullet.x + this.x) / closestBullet;
+            var difY = (action.bullet.y + this.y) / closestBullet;
+            if (this.x >= 400 && this.y >= 400) {
+                this.velocity.x -= difY * acceleration / (closestBullet * closestBullet);
+                this.velocity.y -= difX * acceleration / (closestBullet * closestBullet);
+            }
+            else if (this.x >= 400 && this.y < 400) {
+                this.velocity.x -= difY * acceleration / (closestBullet * closestBullet);
+                this.velocity.y += difX * acceleration / (closestBullet * closestBullet);
+            }
+            else if (this.x < 400 && this.y >= 400) {
+                this.velocity.x += difY * acceleration / (closestBullet * closestBullet);
+                this.velocity.y -= difX * acceleration / (closestBullet * closestBullet);
+            }
+            else if (this.x < 400 && this.y < 400) {
+                this.velocity.x += difY * acceleration / (closestBullet * closestBullet);
+                this.velocity.y += difX * acceleration / (closestBullet * closestBullet);
+            }
+            
+            var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+            if (speed > maxSpeed) {
+                var ratio = maxSpeed / speed;
+                this.velocity.x *= ratio;
+                this.velocity.y *= ratio;
+            }
         }
+
+        
     }
+
+    
 
     // move towards ammo if out
 
@@ -118,9 +161,24 @@ Agent.prototype.selectAction = function() {
         }
     }
 
+    //move towards shield
+
+    else if (this.shield == false && action.shield != null) {
+        var difX = (action.shield.x - this.x) / closestShield;
+        var difY = (action.shield.y - this.y) / closestShield;
+        this.velocity.x += difX * acceleration / (closestShield * closestShield);
+        this.velocity.y += difY * acceleration / (closestShield * closestShield);
+        var speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+        if (speed > maxSpeed) {
+            var ratio = maxSpeed / speed;
+            this.velocity.x *= ratio;
+            this.velocity.y *= ratio;
+        }
+    }
+
     // move towards closest enemy 
 
-    else if (this.spawner.enemiesLeft() > 1 && this.ammo > 1) {
+    else if (this.spawner.enemiesLeft() > 1 && this.ammo > 1 && action.target != null) {
         var difX = (action.target.x - this.x) / closestEnemy;
         var difY = (action.target.y - this.y) / closestEnemy;
         this.velocity.x += difX * acceleration / (closestEnemy * closestEnemy);
@@ -149,6 +207,14 @@ Agent.prototype.update = function () {
     this.x += this.velocity.x * this.game.clockTick;
     this.y += this.velocity.y * this.game.clockTick;
 
+    if (this.shieldCounter > 0) {
+        this.shieldCounter -= this.game.clockTick;
+    }
+    else if (this.shieldCounter <= 0){
+        this.shieldCounter = 0;
+        this.shield = false;
+    } 
+
     if (this.cooldown > 0) this.cooldown -= this.game.clockTick;
     if (this.cooldown < 0) this.cooldown = 0;
 
@@ -173,13 +239,18 @@ Agent.prototype.update = function () {
     for (var i = 0; i < this.game.entities.length; i++) {
         var ent = this.game.entities[i];
         if (ent !== this && this.collide(ent)) {
-            if (ent.name === "Bullet") {
+            if (ent.name === "Bullet" && this.shield == false) {
                 this.spawner.enemyDied();
                 this.removeFromWorld = true;
                 ent.removeFromWorld = true;
             }
             else if (ent.name == "Ammo") {
                 this.ammo += 3;
+                ent.removeFromWorld = true;
+            }
+            else if (ent.name == "Shield") {
+                this.shield = true;
+                this.shieldCounter = 3;
                 ent.removeFromWorld = true;
             }
             else if (ent.name == "Agent") {
@@ -246,13 +317,20 @@ Agent.prototype.update = function () {
         bullet.velocity.x = dir.x * bullet.maxSpeed;
         bullet.velocity.y = dir.y * bullet.maxSpeed;
         bullet.shot = true;
+        bullet.direction = dir;
         this.game.addEntity(bullet);
     }
 };
 
 Agent.prototype.draw = function (ctx) {
+    if (this.shield == false) {
+        this.color = "White";
+    }
+    else {
+        this.color = "Red";
+    }
     ctx.beginPath();
-    ctx.fillStyle = "White";
+    ctx.fillStyle = this.color;
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
     ctx.fill();
     ctx.closePath();

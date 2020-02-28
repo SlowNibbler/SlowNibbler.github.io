@@ -1,11 +1,23 @@
 function Spawner(theGame) {
     this.game = theGame
     this.ammoTimer = 0;
-    this.agentsLeft = 12;
-    for (var i = 0; i < 12; i++) {
-        var agent = new Agent(theGame, this);
-        theGame.addEntity(agent);
-    }
+    this.shieldTimer = 0;
+    this.agentsLeft = 4;
+
+
+
+
+    var agent1 = new Agent(theGame, this, 10, 10);
+    var agent2 = new Agent(theGame, this, 790, 10);
+    var agent3 = new Agent(theGame, this, 10, 790);
+    var agent4 = new Agent(theGame, this, 790, 790);
+
+
+    theGame.addEntity(agent1);
+    theGame.addEntity(agent2);
+    theGame.addEntity(agent3);
+    theGame.addEntity(agent4);
+
 };
 
 Spawner.prototype = new Entity();
@@ -25,10 +37,18 @@ Spawner.prototype.update = function() {
     if (this.game.timer.gameTime > 1 && this.agentsLeft > 1) {
         if (getRandomInt(2) == 1 && this.ammoTimer == 0) {
             this.game.addEntity(new Ammo(this.game));
-            this.ammoTimer = 200;
+            this.ammoTimer = 300;
         }
         else if (this.ammoTimer > 0) {
             this.ammoTimer--;
+        }
+
+        if (getRandomInt(5) == 1 && this.shieldTimer == 0) {
+            this.game.addEntity(new Shield(this.game));
+            this.shieldTimer = 500;
+        }
+        else if (this.shieldTimer > 0) {
+            this.shieldTimer--;
         }
     }
 }
@@ -75,4 +95,34 @@ Ammo.prototype.draw = function (ctx) {
     ctx.closePath();
 
 };
+
+function Shield(theGame) {
+    this.game = theGame
+    this.name = "Shield";
+    this.x = Math.abs(getRandomInt(800));
+    this.y = Math.abs(getRandomInt(800));
+    this.radius = 10;
+}
+
+Shield.prototype = new Entity();
+Shield.prototype.constructor = Ammo;
+
+Shield.prototype.collide = function (other) {
+    return distance(this, other) < this.radius + other.radius;
+};
+
+
+Shield.prototype.update = function () {
+    Entity.prototype.update.call(this);
+};
+
+Shield.prototype.draw = function (ctx) {
+    ctx.beginPath();
+    ctx.fillStyle = "Aqua";
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    ctx.fill();
+    ctx.closePath();
+
+};
+
 
