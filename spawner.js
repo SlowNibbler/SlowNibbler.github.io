@@ -1,24 +1,12 @@
 function Spawner(theGame) {
+    this.name = "Spawner";
     this.game = theGame
     this.ammoTimer = 0;
     this.shieldTimer = 0;
     this.agentsLeft = 4;
-
-
-
-
-    var agent1 = new Agent(theGame, this, 10, 10);
-    var agent2 = new Agent(theGame, this, 790, 10);
-    var agent3 = new Agent(theGame, this, 10, 790);
-    var agent4 = new Agent(theGame, this, 790, 790);
-
-
-    theGame.addEntity(agent1);
-    theGame.addEntity(agent2);
-    theGame.addEntity(agent3);
-    theGame.addEntity(agent4);
-
 };
+
+
 
 Spawner.prototype = new Entity();
 Spawner.prototype.constructor = Spawner;
