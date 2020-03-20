@@ -1,2 +1,0 @@
-# Database
-Assignment 3

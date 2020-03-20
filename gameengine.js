@@ -61,36 +61,12 @@ GameEngine.prototype.startInput = function () {
     console.log('Starting input');
     var that = this;
 
-    var getXandY = function (e) {
-        var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
-        var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
-
-        return { x: x, y: y };
-    }
-
-    this.ctx.canvas.addEventListener("mousemove", function (e) {
-        //console.log(getXandY(e));
-        that.mouse = getXandY(e);
-    }, false);
-
-    this.ctx.canvas.addEventListener("click", function (e) {
-        //console.log(getXandY(e));
-        that.click = getXandY(e);
-    }, false);
-
-    this.ctx.canvas.addEventListener("wheel", function (e) {
-        //console.log(getXandY(e));
-        that.wheel = e;
-        //       console.log(e.wheelDelta);
+    this.ctx.canvas.addEventListener("keypress", function (e) {
+        if (String.fromCharCode(e.which) === ' ') that.space = true;
+        if (e.keyCode == '13') that.shift = !that.shift;
         e.preventDefault();
     }, false);
-
-    this.ctx.canvas.addEventListener("contextmenu", function (e) {
-        //console.log(getXandY(e));
-        that.rightclick = getXandY(e);
-        e.preventDefault();
-    }, false);
-
+    
     console.log('Input started');
 }
 
@@ -113,6 +89,7 @@ GameEngine.prototype.update = function () {
 
     for (var i = 0; i < entitiesCount; i++) {
         var entity = this.entities[i];
+
         if (!entity.removeFromWorld) {
             entity.update();
         }
@@ -129,9 +106,7 @@ GameEngine.prototype.loop = function () {
     this.clockTick = this.timer.tick();
     this.update();
     this.draw();
-    this.click = null;
-    this.rightclick = null;
-    this.wheel = null;
+    this.space = null;
 }
 
 function Entity(game, x, y) {
