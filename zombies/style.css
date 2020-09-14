@@ -1,6 +1,11 @@
 canvas {
     display: inline;
     float: left;
+
+}
+
+body {
+    background-image: url("../img/smell_pattern.png");
 }
 
 div {
